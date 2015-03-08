@@ -2,16 +2,24 @@ var express 	= require('express')
 var bodyParser 	= require('body-parser')
 var bcrypt 		= require('bcrypt-nodejs');
 var mysql     	= require('mysql');
+var fs 			= require('fs');
+var connect 	= require("connect");
 var app 		= express();
+
 // parse application/x-www-form-urlencoded
 var urlEncParser = bodyParser.urlencoded({ extended: false })
-
 
 var connection = mysql.createConnection({
 	host     : 'localhost',
 	user     : 'root',
 	password : '',
 	database: 'np'
+});
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(function(req,res,next){
+	return next();
 });
 
 app.get('/', function (req, res) {
@@ -88,13 +96,26 @@ app.post("/register", urlEncParser, function(req, res){
 	res.send("Test");
 });
 
+app.post("/smeniSlika", function(req, res)
+{
+	console.log(req.body);
+	var f=fs.createWriteStream('name.jpeg');
+	var base64Data = req.body.slika.replace(/^data:image\/jpg;base64,/, "");
+
+	require("fs").writeFile("out.jpg", base64Data, 'base64', function(err) {
+		console.log(err);
+	});
+
+	res.json({poraka: "nisto"});
+});
+
 app.post("/dodajOglas", function(req, res)
 {
 	var oglas = req.body; 
 	var query = connection.query ('INSERT INTO `oglasi` SET ?', oglas, function(err, result)
 	{
-
-
+		console.log(oglas.tagovi.split(","))
+		res.json({response: "niso"});
 	});
 });
 
