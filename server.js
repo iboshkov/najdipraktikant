@@ -16,11 +16,15 @@ var connection = mysql.createConnection({
 	database	: 'np'
 });
 
+
+app.use("/sliki", express.static(__dirname + '/sliki'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(function(req,res,next){
 	return next();
 });
+
+
 
 app.get('/', function (req, res) {
 	bcrypt.hash("bacon", null, null, function(errHash, hash) {
@@ -98,20 +102,81 @@ app.post("/register", urlEncParser, function(req, res){
 
 app.post("/smeniSlika", function(req, res)
 {
-	console.log(req.body);
-	var f=fs.createWriteStream('name.jpeg');
-	var base64Data = req.body.slika.replace(/^data:image\/jpg;base64,/, "");
+	console.log(req.body.userId, " smeni slika");
 
-	require("fs").writeFile("out.jpg", base64Data, 'base64', function(err) {
+	require("fs").writeFile("sliki/" + req.body.userId + ".jpg", req.body.slika, 'base64', function(err) {
 		console.log(err);
 	});
 
 	res.json({poraka: "nisto"});
 });
 
+app.post("/obnoviProfil", function(req, res){
+	var data = JSON.parse(req.body.user); 
+
+	var query = connection.query ('UPDATE `korisnici` SET ? WHERE `korisnici`.`id`=' + data.id, data, function(err, result)
+	{
+		console.log(query.sql);
+		//if (err) throw err;
+		if (result.changedRows == 0)
+		{
+			res.send("Except - /obnoviProfil - ne postoe korisnikot ili greska id").status(403);
+		}
+		else if (result.changedRows > 1)
+		{
+			res.send("What ?").status(403);	
+		}
+		else
+		{
+			res.json({response: "success"});
+		}
+	});
+});
+
+app.post("/zemiProfil", function(req, res){
+	var data = req.body; 
+	var query = connection.query ('SELECT * FROM `korisnici` WHERE `id`=' + data.userId, function(err, result)
+	{
+		if (err) throw err;
+		res.json(result[0]);
+	});
+	console.log(data);
+});
+
+app.post("/zemiKompanii", function(req, res){
+	var niza = [];
+	console.log("/Zemi kompanii");
+	var query = connection.query ('SELECT * FROM `korisnici` WHERE `tip`=1', function(err, result)
+	{
+		if (err) throw err;
+		for(var red in result)
+		{
+			console.log("Red " + red + ": ", result[red]);
+		}
+		res.json(result);
+	});
+});
+
+app.post("/zemiOglasi", function(req, res)
+{
+	var filter  = req.body;
+	console.log(filter);
+	var q = 'SELECT * FROM `oglasi` WHERE 1 ';
+	if (filter.kompanija.length > 0)
+		q += 'AND `idKompanija`=' + filter.kompanija; 
+
+	console.log("Vracam oglasi");
+	var query = connection.query (q, function(err, result)
+	{
+		console.log(result);
+		res.json(result);
+	});
+	console.log(query.sql);
+});
 app.post("/dodajOglas", function(req, res)
 {
-	var oglas = req.body; 
+	var oglas = req.body;
+	console.log(oglas);
 	var query = connection.query ('INSERT INTO `oglasi` SET ?', oglas, function(err, result)
 	{
 		console.log(oglas.tagovi.split(","))
