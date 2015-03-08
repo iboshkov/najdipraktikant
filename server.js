@@ -1,19 +1,19 @@
-var express 	= require('express')
-var bodyParser 	= require('body-parser')
-var bcrypt 		= require('bcrypt-nodejs');
-var mysql     	= require('mysql');
-var fs 			= require('fs');
-var connect 	= require("connect");
-var app 		= express();
+var express		= require('express')
+var bodyParser	= require('body-parser')
+var bcrypt		= require('bcrypt-nodejs');
+var mysql		= require('mysql');
+var fs			= require('fs');
+var connect		= require("connect");
+var app			= express();
 
 // parse application/x-www-form-urlencoded
 var urlEncParser = bodyParser.urlencoded({ extended: false })
 
 var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
-	database: 'np'
+	host		: 'localhost',
+	user		: 'root',
+	password	: '',
+	database	: 'np'
 });
 
 app.use(bodyParser.json());
@@ -81,7 +81,7 @@ app.get("/register", function(req, res)
 
 app.post("/register", urlEncParser, function(req, res){
 	//INSERT INTO `np`.`korisnici` (`id`, `ime`, `pass`, `mail`, `tip`, `slika`) VALUES (NULL, 'Lazar Nikolov', '$2a$10$5PcBomN43vvtCH2qgoxJk.M1SVcMSun2oXeXgCx/FqgrugqN3IQUO', 'lazar.nikolov.94@gmail.com', '0', 'sliki/default.jpg');
-  	console.log("Dobi register: ", typeof(req.body));
+	console.log("Dobi register: ", typeof(req.body));
 	var korisnik = req.body;
 	
 	bcrypt.hash(korisnik.pass, null, null, function(errHash, hash) {
